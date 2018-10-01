@@ -1,0 +1,174 @@
+package ExcelLibrary;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.Select;
+
+public class Datapull {
+
+	public static void main(String[] args) throws InterruptedException {
+		
+		
+		ExcelLib lib = new ExcelLib();
+		
+		int k = lib.getrowcount("LoginLogout");
+				
+		for(int i=0;i<=k;i++)
+		{			
+			System.setProperty("webdriver.chrome.driver","D:\\Drivers\\chromedriver_win32\\chromedriver.exe");
+			
+			WebDriver driver = new ChromeDriver();
+					
+			driver.get("http://www.rdc.gov.ae/Register.aspx");
+			
+			Thread.sleep(5000);
+			
+			driver.findElement(By.id("ucHeaderExternal_lnkBtnToggleLanguage")).click();
+			Thread.sleep(2000);
+			
+			WebElement dropdown =driver.findElement(By.id("PageContent_partyInfoControl_UCSelectCaseParty1_ddlIdType"));
+			
+			Select s = new Select(dropdown);
+			
+			s.selectByVisibleText("Emirates ID Number");
+			
+			String data = lib.getdata("LoginLogout", k, 1);
+			
+			driver.findElement(By.id("PageContent_partyInfoControl_UCSelectCaseParty1_txtId")).sendKeys(data);
+			
+			driver.findElement(By.className("btn btn-primary top-buffer")).click();
+
+			Thread.sleep(3000);
+
+			String pdate = driver.findElement(By.id("PageContent_partyInfoControl_UCPersonInformation1_dpExpiryDate_txtDate")).getText();
+
+			lib.writetoexcel("LoginLogout", k, 2, pdate);
+			
+			WebElement Element =driver.findElement(By.id("PageContent_btnClear"));
+
+			JavascriptExecutor js = (JavascriptExecutor) driver;
+
+			js.executeScript("arguments[0].scrollIntoView();", Element);
+
+			Element.click();
+
+			Thread.sleep(2000);
+			
+			WebElement dropdown1 =driver.findElement(By.className("ucHeaderExternal_lnkBtnToggleLanguage"));
+		
+			
+		}
+		
+		
+
+	}
+
+}
+-----
+
+
+
+package ExcelLibrary;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+public class ExcelLib {
+	
+	File f = new File("C:\\workspace\\Zxw\\src\\ExcelLibrary\\File.xlsx");
+
+	public int getrowcount(String sheetname)
+	{
+		int retval = 0;
+		
+		try
+		{
+			FileInputStream fis = new FileInputStream(f);
+			
+			XSSFWorkbook wb = new XSSFWorkbook(fis);
+			
+			XSSFSheet s = wb.getSheet(sheetname);
+			
+			retval = s.getLastRowNum();
+	}
+      catch(Exception e)
+		{
+    	  e.printStackTrace();
+		}
+		return retval;
+		
+	}
+	
+	public String getdata(String sheetname,int rownum,int cellnum)
+	{
+		String retval=null;
+		try
+		{
+            FileInputStream fis = new FileInputStream(f);
+			
+			XSSFWorkbook wb = new XSSFWorkbook(fis);
+			
+			XSSFSheet s = wb.getSheet(sheetname);
+			
+			Row r  = s.getRow(rownum);
+			
+			Cell c = r.getCell(cellnum);
+			
+		    retval = c.getStringCellValue();
+		
+		}
+		
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return retval;
+		
+	}
+	
+	public void writetoexcel(String sheetname,int rownum,int cellnum,String val)
+	{
+
+		try
+		{
+			    FileInputStream fis = new FileInputStream(f);
+				
+				XSSFWorkbook wb = new XSSFWorkbook(fis);
+				
+				XSSFSheet s = wb.getSheet(sheetname);
+				
+				Row r = s.createRow(rownum);
+				
+				Cell c = r.createCell(cellnum);
+				
+				c.setCellType(c.CELL_TYPE_STRING);
+				
+				c.setCellValue(val);
+				
+				FileOutputStream fos = new FileOutputStream("C:\\workspace\\Zxw\\src\\ExcelLibrary\\File.xlsx");
+				
+				wb.write(fos);
+				
+				fos.close();
+		
+		}
+		
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			
+		}
+	
+	}
+
+}
